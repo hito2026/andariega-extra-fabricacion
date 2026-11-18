@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estimación — Andariega · Extra Unidad de Fabricación (MRP + Calidad + Horas)</title>
+<style>
+  :root {
+    --bg: #f5f6f8; --card: #ffffff; --ink: #1f2430; --muted: #5b6472; --line: #e6e8ee;
+    --brand: #33415c; --brand-2: #3f6df0; --brand-soft: #eef0ff; --ok: #16a34a; --ok-soft: #e8f7ee;
+    --warn: #d97706; --warn-soft: #fdf3e3; --danger: #dc2626; --danger-soft: #fdeaea;
+    --info: #0284c7; --info-soft: #e6f4fb;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.55; font-size: 15px; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 28px 20px 64px; }
+  header.hero { background: linear-gradient(135deg, #243047 0%, #33415c 55%, #3f6df0 130%); color: #fff; border-radius: 16px; padding: 26px 30px; margin-bottom: 22px; }
+  header.hero .logo-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+  header.hero .logo-row img { height: 40px; width: auto; }
+  header.hero h1 { margin: 0 0 6px; font-size: 23px; letter-spacing: -0.01em; }
+  header.hero .sub { opacity: .92; font-size: 14.5px; max-width: 760px; }
+  .badges { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .badge { font-size: 12.5px; font-weight: 600; padding: 5px 11px; border-radius: 999px; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.26); color: #fff; }
+  .badge.solid { background: #fff; color: var(--brand); border-color: #fff; }
+  .badge.warn { background: rgba(255,255,255,.14); color: #ffd9a8; border-color: rgba(255,193,7,.4); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px 26px; margin-bottom: 20px; box-shadow: 0 1px 2px rgba(16,24,40,.04); }
+  h2 { margin: 0 0 14px; font-size: 18px; letter-spacing: -0.01em; display: flex; align-items: center; gap: 9px; }
+  h2 .num { background: var(--brand-soft); color: var(--brand); font-size: 13px; font-weight: 700; min-width: 25px; height: 25px; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center; padding: 0 6px; }
+  h3 { font-size: 15px; margin: 18px 0 8px; color: var(--brand); }
+  .callout { border-radius: 12px; padding: 16px 18px; margin: 14px 0; font-size: 14.5px; }
+  .callout.key { background: var(--brand-soft); border: 1px solid #d9d6ff; }
+  .callout.warn { background: var(--warn-soft); border: 1px solid #f4dfb9; }
+  .callout.info { background: var(--info-soft); border: 1px solid #cde9f6; }
+  .callout.danger { background: var(--danger-soft); border: 1px solid #f6caca; }
+  .callout .big { font-size: 26px; font-weight: 800; color: var(--brand); }
+  .callout .big .unit { font-size: 14px; font-weight: 600; color: var(--muted); }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 12px 0; }
+  th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+  thead th { background: #f0f1f5; font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; color: #444b58; border-bottom: 2px solid var(--line); white-space: nowrap; }
+  tbody tr:hover { background: #fafbfd; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tr.total td { font-weight: 700; background: #f7f7ff; border-top: 2px solid var(--line); }
+  .tag { font-size: 11.5px; font-weight: 700; padding: 2px 8px; border-radius: 6px; white-space: nowrap; }
+  .tag.E { background: var(--ok-soft); color: var(--ok); }
+  .tag.P { background: var(--info-soft); color: var(--info); }
+  .tag.D { background: var(--warn-soft); color: var(--warn); }
+  .tag.N { background: var(--danger-soft); color: var(--danger); }
+  .tag.C2 { background: #eceef2; color: #6b7280; }
+  .tag.C3 { background: var(--info-soft); color: var(--info); }
+  .tag.C4 { background: var(--warn-soft); color: var(--warn); }
+  .tag.C5 { background: var(--danger-soft); color: var(--danger); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+  .kv { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed var(--line); font-size: 14px; }
+  .kv:last-child { border-bottom: none; }
+  .kv b { color: var(--brand); }
+  .pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 999px; }
+  .pill.ok { background: var(--ok-soft); color: var(--ok); }
+  .pill.partial { background: var(--warn-soft); color: var(--warn); }
+  .pill.pending { background: #eceef2; color: #6b7280; }
+  .muted { color: var(--muted); font-size: 13px; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; }
+  a { color: var(--brand-2); }
+  .steps { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin: 12px 0; }
+  .step { background: #f7f8fb; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; font-size: 13px; }
+  .step b { display: block; color: var(--brand); margin-bottom: 3px; font-size: 13px; }
+  .risk { border-left: 3px solid var(--line); padding: 8px 14px; margin: 8px 0; background: #fafbfd; border-radius: 0 10px 10px 0; }
+  .risk.hi { border-left-color: var(--danger); }
+  .risk.md { border-left-color: var(--warn); }
+  .risk.lo { border-left-color: var(--info); }
+  .risk b { color: var(--brand); }
+  footer { margin-top: 26px; color: var(--muted); font-size: 12.5px; text-align: center; }
+  footer .logo-sm { height: 22px; vertical-align: middle; margin-left: 6px; }
+  @media print { body { background: #fff; } .wrap { max-width: 100%; padding: 0; } header.hero { border-radius: 0; } .card { box-shadow: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="logo-row">
+      <div>
+        <div style="font-size:13px;opacity:.85;letter-spacing:.06em;text-transform:uppercase;font-weight:700;">Estimación de implementación Odoo</div>
+        <h1>Andariega — Extra: Unidad de Fabricación</h1>
+        <div class="sub">MRP (órdenes de producción + centros de trabajo) · Calidad · Horas de fabricación · Reportes</div>
+      </div>
+      <img src="logo.png" alt="HitoFusion">
+    </div>
+    <div class="badges">
+      <span class="badge solid">Odoo 19 Enterprise</span>
+      <span class="badge solid">Odoo.sh</span>
+      <span class="badge solid">Nivel E1 preliminar</span>
+      <span class="badge warn">No es compromiso comercial</span>
+    </div>
+  </header>
+
+  <section class="card">
+    <h2><span class="num">1</span> Resumen ejecutivo</h2>
+    <div class="callout key">
+      <div style="font-size:14px;margin-bottom:4px;">Esfuerzo total estimado (PERT)</div>
+      <div class="big">≈ 174 h <span class="unit">(rango 103 – 278 h)</span></div>
+      <div class="muted" style="margin-top:4px;">Optimista 103 h · Más probable 166 h · Pesimista 278 h · Esperada 174 h</div>
+    </div>
+    <div class="grid">
+      <div>
+        <h3>Por rol</h3>
+        <div class="kv"><span>Analista funcional</span><b>103 h</b></div>
+        <div class="kv"><span>Dev senior</span><b>56 h</b></div>
+        <div class="kv"><span>PM / gestión</span><b>15 h</b></div>
+      </div>
+      <div>
+        <h3>Por fase</h3>
+        <div class="kv"><span>Análisis</span><b>6 h</b></div>
+        <div class="kv"><span>Configuración</span><b>60 h</b></div>
+        <div class="kv"><span>Desarrollo</span><b>51 h</b></div>
+        <div class="kv"><span>QA · Capacitación · Deploy · Gestión</span><b>57 h</b></div>
+      </div>
+    </div>
+    <div class="callout warn" style="margin-top:14px;">
+      <b>Importante:</b> este es un documento de trabajo en nivel <b>E1 preliminar</b>. Falta la validación explícita del flujo (gate G3) y la revisión funcional/técnica humana (gate G5). <b>No es un presupuesto comprometido.</b>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">2</span> Entendimiento del alcance</h2>
+    <p class="muted" style="margin-top:0;">Unidad de negocio de fabricación que faltó sumar al alcance ya contratado (CRM, compras, ventas, facturación, inventario y proyectos).</p>
+    <div class="steps">
+      <div class="step"><b>Proyecto / CT2</b>Proyecto en Odoo con código propio (ej. 5021).</div>
+      <div class="step"><b>Chasis</b>Producto fabricado con número de serie; el código <code>YY-CT2-NN-desc</code> se genera solo.</div>
+      <div class="step"><b>OP</b>Orden de producción por chasis, con BOM y planos adjuntos.</div>
+      <div class="step"><b>Horas</b>Producción carga HH por chasis/proceso (herrería, pintura, montaje, instalaciones, montaje exterior).</div>
+      <div class="step"><b>Calidad</b>Puntos de control en las operaciones (solo puntos, sin no conformidades).</div>
+      <div class="step"><b>Reportes</b>Dentro de Odoo: presupuesto vs real por rubro + control de HH/eficiencia.</div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">3</span> Determinación E / P / D</h2>
+    <p class="muted" style="margin-top:0;">E = estándar · P = parametrizable (configuración) · D = desarrollo a medida.</p>
+    <table>
+      <thead><tr><th>Necesidad</th><th>Odoo nativo</th><th>Clase</th><th>Nota</th></tr></thead>
+      <tbody>
+        <tr><td>BOM multinivel + órdenes de producción (MRP1)</td><td>Sí</td><td><span class="tag P">P</span></td><td>Manufactura</td></tr>
+        <tr><td>Centros de trabajo + rutas + horas en OP (MRP2)</td><td>Sí</td><td><span class="tag P">P</span></td><td>Manufactura + app Horas</td></tr>
+        <tr><td>Calidad: puntos de control en operaciones</td><td>Sí</td><td><span class="tag P">P</span></td><td>Quality (Enterprise)</td></tr>
+        <tr><td>Código de chasis automático (YY-CT2-NN-desc)</td><td>No</td><td><span class="tag D">D</span></td><td>Desarrollo acotado (C3)</td></tr>
+        <tr><td>Reporte presupuesto vs real por rubro + estado</td><td>Parcial</td><td><span class="tag D">D</span></td><td>Desarrollo (C4)</td></tr>
+        <tr><td>Reporte control de HH + eficiencia + HH/m2</td><td>Parcial</td><td><span class="tag D">D</span></td><td>Desarrollo (C3)</td></tr>
+      </tbody>
+    </table>
+    <div class="callout info">
+      <b>Conclusión:</b> el núcleo de fabricación es <b>parametrización nativa</b> de Odoo 19 Enterprise. Hay <b>3 desarrollos a medida acotados</b>: el código de chasis y los 2 reportes.
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">4</span> Alcance incluido y exclusiones</h2>
+    <div class="grid">
+      <div>
+        <h3>Incluido</h3>
+        <ul>
+          <li>Configuración MRP1 (BOM + órdenes de producción).</li>
+          <li>Configuración MRP2 (centros de trabajo + rutas + horas en OP).</li>
+          <li>Calidad: puntos de control en operaciones.</li>
+          <li>Desarrollo del código de chasis automático.</li>
+          <li>Desarrollo de 2 reportes (presupuesto vs real · control HH/eficiencia).</li>
+          <li>Importación de productos y BOM.</li>
+          <li>Capacitación, QA, deploy, UAT, estabilización y gestión.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Excluido / fuera de este extra</h3>
+        <ul>
+          <li>Planificación finita / MPS (no solicitada).</li>
+          <li>No conformidades y acciones correctivas de calidad.</li>
+          <li>Material no estándar sin código imputado a CT2 (a confirmar si corresponde a otro alcance).</li>
+          <li>Cotización comercial y su estructura de costos (alcance de ventas ya contratado).</li>
+          <li>Avance físico / curva S por edificio (alcance de proyectos ya contratado).</li>
+          <li>Licencias Odoo, tarifas e importes.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">5</span> Tamaño funcional (COSMIC)</h2>
+    <table>
+      <thead><tr><th>Proceso funcional</th><th class="num">E</th><th class="num">X</th><th class="num">R</th><th class="num">W</th><th class="num">CFP</th></tr></thead>
+      <tbody>
+        <tr><td>Confirmar OP y generar chasis</td><td class="num">1</td><td class="num">0</td><td class="num">2</td><td class="num">2</td><td class="num">5</td></tr>
+        <tr><td>Registrar horas por chasis/proceso</td><td class="num">1</td><td class="num">0</td><td class="num">1</td><td class="num">1</td><td class="num">3</td></tr>
+        <tr><td>Ejecutar punto de control de calidad</td><td class="num">1</td><td class="num">0</td><td class="num">1</td><td class="num">1</td><td class="num">3</td></tr>
+        <tr><td>Liberar/cerrar chasis</td><td class="num">1</td><td class="num">1</td><td class="num">0</td><td class="num">1</td><td class="num">3</td></tr>
+        <tr><td>Consultar presupuesto vs real por rubro</td><td class="num">0</td><td class="num">1</td><td class="num">3</td><td class="num">0</td><td class="num">4</td></tr>
+        <tr><td>Consultar control HH / eficiencia / m2</td><td class="num">0</td><td class="num">1</td><td class="num">2</td><td class="num">0</td><td class="num">3</td></tr>
+        <tr class="total"><td>Total</td><td class="num">4</td><td class="num">3</td><td class="num">9</td><td class="num">5</td><td class="num">21</td></tr>
+      </tbody>
+    </table>
+    <p class="muted">CFP = puntos de función COSMIC (E entrada, X salida, R lectura, W escritura). Sirven para comparar tamaño, no se convierten a horas.</p>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">6</span> WBS técnica con O / M / P</h2>
+    <p class="muted" style="margin-top:0;">PERT: esperada = (O + 4·M + P) / 6. Cx = complejidad (C1–C5).</p>
+    <table>
+      <thead><tr><th>ID</th><th>Tarea</th><th>Rol</th><th>Cx</th><th class="num">O</th><th class="num">M</th><th class="num">P</th><th class="num">Esp.</th></tr></thead>
+      <tbody>
+        <tr><td>ANAL-01</td><td>Relevamiento y análisis funcional del proceso de fabricación</td><td>Analista funcional</td><td><span class="tag C3">C3</span></td><td class="num">4</td><td class="num">6</td><td class="num">10</td><td class="num">6.3</td></tr>
+        <tr><td>CONF-01</td><td>Configuración de Manufactura (settings, secuencias, tipos)</td><td>Analista funcional</td><td><span class="tag C2">C2</span></td><td class="num">4</td><td class="num">6</td><td class="num">10</td><td class="num">6.3</td></tr>
+        <tr><td>CONF-02</td><td>Alta e importación de productos y BOM multinivel</td><td>Analista funcional</td><td><span class="tag C3">C3</span></td><td class="num">6</td><td class="num">8</td><td class="num">14</td><td class="num">8.7</td></tr>
+        <tr><td>CONF-03</td><td>Parametrización de reglas de producción (MTO, reservas, compras)</td><td>Analista funcional</td><td><span class="tag C3">C3</span></td><td class="num">6</td><td class="num">8</td><td class="num">14</td><td class="num">8.7</td></tr>
+        <tr><td>CONF-04</td><td>Centros de trabajo por proceso y costos por hora</td><td>Analista funcional</td><td><span class="tag C3">C3</span></td><td class="num">6</td><td class="num">8</td><td class="num">14</td><td class="num">8.7</td></tr>
+        <tr><td>CONF-05</td><td>Rutas/operaciones y tiempos estándar</td><td>Analista funcional</td><td><span class="tag C3">C3</span></td><td class="num">6</td><td class="num">10</td><td class="num">16</td><td class="num">10.3</td></tr>
+        <tr><td>CONF-06</td><td>Horas en órdenes de trabajo (timesheets) + Fábrica/Montaje</td><td>Analista funcional</td><td><span class="tag C3">C3</span></td><td class="num">4</td><td class="num">8</td><td class="num">12</td><td class="num">8.0</td></tr>
+        <tr><td>CONF-07</td><td>Puntos de control de calidad en operaciones</td><td>Analista funcional</td><td><span class="tag C2">C2</span></td><td class="num">3</td><td class="num">5</td><td class="num">8</td><td class="num">5.2</td></tr>
+        <tr><td>CONF-08</td><td>Equipos y chequeos de calidad</td><td>Analista funcional</td><td><span class="tag C2">C2</span></td><td class="num">2</td><td class="num">4</td><td class="num">6</td><td class="num">4.0</td></tr>
+        <tr><td>CAP-01</td><td>Capacitación a producción (carga de horas y OP)</td><td>Analista funcional</td><td><span class="tag C2">C2</span></td><td class="num">4</td><td class="num">6</td><td class="num">10</td><td class="num">6.3</td></tr>
+        <tr><td>DEV-01</td><td>Diseño del generador de código de chasis (YY-CT2-NN-desc)</td><td>Dev senior</td><td><span class="tag C3">C3</span></td><td class="num">2</td><td class="num">4</td><td class="num">6</td><td class="num">4.0</td></tr>
+        <tr><td>DEV-02</td><td>Desarrollo override de serie + automatización + vínculo CT2</td><td>Dev senior</td><td><span class="tag C3">C3</span></td><td class="num">6</td><td class="num">10</td><td class="num">16</td><td class="num">10.3</td></tr>
+        <tr><td>QA-01</td><td>Pruebas del código de chasis (primer chasis, múltiples, mismo CT2)</td><td>Dev senior</td><td><span class="tag C3">C3</span></td><td class="num">2</td><td class="num">4</td><td class="num">8</td><td class="num">4.3</td></tr>
+        <tr><td>DEV-03</td><td>Diseño de reportes (presupuesto vs real + control HH + KPIs)</td><td>Analista funcional</td><td><span class="tag C3">C3</span></td><td class="num">3</td><td class="num">5</td><td class="num">8</td><td class="num">5.2</td></tr>
+        <tr><td>DEV-04</td><td>Desarrollo reporte Control de HH + eficiencia + HH/m2</td><td>Dev senior</td><td><span class="tag C3">C3</span></td><td class="num">8</td><td class="num">14</td><td class="num">24</td><td class="num">14.7</td></tr>
+        <tr><td>DEV-05</td><td>Desarrollo reporte presupuesto vs real por rubro + estado</td><td>Dev senior</td><td><span class="tag C4">C4</span></td><td class="num">10</td><td class="num">16</td><td class="num">28</td><td class="num">17.0</td></tr>
+        <tr><td>QA-02</td><td>Pruebas de reportes</td><td>Dev senior</td><td><span class="tag C3">C3</span></td><td class="num">3</td><td class="num">6</td><td class="num">10</td><td class="num">6.2</td></tr>
+        <tr><td>QA-03</td><td>Pruebas integrales y regresión del flujo completo</td><td>Analista funcional</td><td><span class="tag C4">C4</span></td><td class="num">6</td><td class="num">10</td><td class="num">16</td><td class="num">10.3</td></tr>
+        <tr><td>CAP-02</td><td>Capacitación integral y documentación funcional</td><td>Analista funcional</td><td><span class="tag C2">C2</span></td><td class="num">4</td><td class="num">6</td><td class="num">10</td><td class="num">6.3</td></tr>
+        <tr><td>DEP-01</td><td>Deploy + go-live + UAT</td><td>PM</td><td><span class="tag C2">C2</span></td><td class="num">4</td><td class="num">6</td><td class="num">10</td><td class="num">6.3</td></tr>
+        <tr><td>DEP-02</td><td>Estabilización post go-live</td><td>Analista funcional</td><td><span class="tag C2">C2</span></td><td class="num">4</td><td class="num">8</td><td class="num">16</td><td class="num">8.7</td></tr>
+        <tr><td>GES-01</td><td>Gestión de proyecto</td><td>PM</td><td><span class="tag C2">C2</span></td><td class="num">6</td><td class="num">8</td><td class="num">12</td><td class="num">8.3</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">7</span> Totales</h2>
+    <div class="grid">
+      <div>
+        <h3>Por fase (esperada)</h3>
+        <div class="kv"><span>Análisis</span><b>6.3 h</b></div>
+        <div class="kv"><span>Configuración</span><b>59.8 h</b></div>
+        <div class="kv"><span>Desarrollo</span><b>51.2 h</b></div>
+        <div class="kv"><span>QA</span><b>20.8 h</b></div>
+        <div class="kv"><span>Capacitación</span><b>12.7 h</b></div>
+        <div class="kv"><span>Deploy</span><b>15.0 h</b></div>
+        <div class="kv"><span>Gestión</span><b>8.3 h</b></div>
+        <div class="kv" style="font-weight:700;"><span>Total</span><b>174 h</b></div>
+      </div>
+      <div>
+        <h3>Por rol (esperada)</h3>
+        <div class="kv"><span>Analista funcional</span><b>103 h</b></div>
+        <div class="kv"><span>Dev senior</span><b>56 h</b></div>
+        <div class="kv"><span>PM / gestión</span><b>15 h</b></div>
+        <div class="kv" style="font-weight:700;"><span>Total</span><b>174 h</b></div>
+        <h3 style="margin-top:18px;">Rango consolidado</h3>
+        <div class="kv"><span>Optimista (O)</span><b>103 h</b></div>
+        <div class="kv"><span>Más probable (M)</span><b>166 h</b></div>
+        <div class="kv"><span>Pesimista (P)</span><b>278 h</b></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">8</span> Riesgos</h2>
+    <div class="risk hi"><b>Código de chasis custom (C3)</b> — lógica de serie con patrón variable. Probabilidad media · Impacto medio. <i>Mitigación: spike temprano en staging.</i></div>
+    <div class="risk hi"><b>Reporte presupuesto vs real (C4)</b> — depende de cómo quedó modelada la cotización en ventas. Probabilidad alta · Impacto alto. <i>Mitigación: fijar el modelo de cotización antes de desarrollarlo.</i></div>
+    <div class="risk md"><b>BOM incompletos</b> — ~500 productos y BOM a relevar por familia. Probabilidad media · Impacto alto. <i>Mitigación: relevamiento de BOM por familia de producto.</i></div>
+    <div class="risk lo"><b>Reporte de HH</b> — requiere app Horas + empleados configurados. Probabilidad baja · Impacto bajo. <i>Mitigación: configurar hr_timesheet.</i></div>
+    <div class="risk lo"><b>Compatibilidad OCA en v19</b> — si se usan módulos OCA. Probabilidad baja · Impacto bajo. <i>Mitigación: verificar rama 19.0 antes de instalar.</i></div>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">9</span> Cronograma condicionado</h2>
+    <p style="margin-top:0;">El esfuerzo (~174 h) no equivale a duración. Con 1 analista funcional y 1 dev senior a dedicación parcial (~20 h/semana cada uno) y las dependencias secuenciales (configuración → desarrollo de reportes → QA/UAT), la duración estimada es de <b>~8–10 semanas</b>.</p>
+    <ul>
+      <li>Condicionada a la disponibilidad del cliente para relevar BOM, centros de trabajo y validar UAT.</li>
+      <li>Condicionada a las ventanas de deploy en Odoo.sh.</li>
+      <li>El reporte presupuesto-vs-real es camino crítico: arranca cuando esté definido el modelo de cotización (alcance ya contratado).</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">10</span> Estado de gates y condiciones de validez</h2>
+    <table>
+      <thead><tr><th>Gate</th><th>Estado</th></tr></thead>
+      <tbody>
+        <tr><td>G0 — Entrada suficiente</td><td><span class="pill ok">OK</span></td></tr>
+        <tr><td>G1 — Reutilización revisada</td><td><span class="pill ok">OK</span></td></tr>
+        <tr><td>G2 — Flujo entendido</td><td><span class="pill ok">OK</span></td></tr>
+        <tr><td>G3 — Entendimiento validado</td><td><span class="pill partial">Pendiente</span></td></tr>
+        <tr><td>G4 — Diseño estimable</td><td><span class="pill ok">OK</span></td></tr>
+        <tr><td>G5 — Revisión humana</td><td><span class="pill pending">Pendiente</span></td></tr>
+        <tr><td>G6 — Cierre real</td><td><span class="pill pending">Pendiente</span></td></tr>
+      </tbody>
+    </table>
+    <div class="callout warn">
+      El estimado se re-versiona si cambia: el modelo de chasis, el alcance de reportes, la edición/versión de Odoo, el volumen de productos/BOM, o la responsabilidad del cliente sobre los datos maestros.
+    </div>
+  </section>
+
+  <footer>
+    Documento de trabajo interno — E1 preliminar, no es compromiso comercial.
+    Generado el 17/11/2026 · HitoFusion
+    <img class="logo-sm" src="logo.png" alt="HitoFusion">
+  </footer>
+
+</div>
+</body>
+</html>
